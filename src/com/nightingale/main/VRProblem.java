@@ -8,7 +8,7 @@ public class VRProblem {
 	public String id;
 	public Customer depot;
 	ArrayList<Customer> customers;
-	HashMap<HashMap<Integer, Integer>, Double> pairsMap;
+	HashMap<HashMap<Customer, Customer>, Double> pairsMap;
     ArrayList<Double> sortedDistances;
 
 
@@ -23,7 +23,7 @@ public class VRProblem {
 				Integer.parseInt(dpt[1]),
 				Integer.parseInt(dpt[2]));
 		customers = new ArrayList<Customer>();
-		pairsMap = new HashMap<HashMap<Integer, Integer>, Double>();
+		pairsMap = new HashMap<HashMap<Customer, Customer>, Double>();
         sortedDistances = new ArrayList<Double>();
 		//Every customer is stored on a comma separated line
 		while ((s=br.readLine())!=null){
@@ -39,15 +39,15 @@ public class VRProblem {
 		return this.customers.size();				
 	}
 
-	public HashMap<HashMap<Integer, Integer>, Double> makePairs() {
+	public HashMap<HashMap<Customer, Customer>, Double> makePairs() {
         // make sure the map is empty before making the pairs
         pairsMap.clear();
 
         // calculate the cost between pairs of customers
         for (int i=0; i<customers.size()-1; i++) {
             for (int j=i+1; j<customers.size(); j++) {
-                HashMap<Integer, Integer> coordMap = new HashMap<Integer, Integer>();
-                coordMap.put(i, j);
+                HashMap<Customer, Customer> coordMap = new HashMap<Customer, Customer>();
+                coordMap.put(customers.get(i), customers.get(j));
 
                 Double distance = customers.get(i).distance(customers.get(j));
 

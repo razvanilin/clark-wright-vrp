@@ -6,7 +6,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         // Load Problem
-        VRProblem problem = new VRProblem("data/rand00040prob.csv");
+        VRProblem problem = new VRProblem("data/rand01000prob.csv");
 
         // Create blank solution
         VRSolution solution = new VRSolution(problem);
@@ -25,9 +25,9 @@ public class Main {
         //System.out.println("Cost = " + solution.solnCost());
 
         // Save the solution file for verification
-        //solution.writeOut("one_route.csv");
+        solution.writeOut("one_route.csv");
         //Create pictures of the problem and the solution
-        //solution.writeSVG("helper/testData/rand00040prob.csv", "one_route.svg");
+        solution.writeSVG("data/rand01000prob.csv", "one_route.svg");
 
     }
 }
