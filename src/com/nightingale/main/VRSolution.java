@@ -1,207 +1,116 @@
 package com.nightingale.main;
 
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
 
 public class VRSolution {
 	public VRProblem prob;
-	public List<List<Customer>>soln;
+	public ArrayList<Route> soln = new ArrayList<Route>();
 	public VRSolution(VRProblem problem){
 		this.prob = problem;
 	}
 
 	//The dumb solver adds one route per customer
-	public void oneRoutePerCustomerSolution(){
+	/*public void oneRoutePerCustomerSolution(){
 		this.soln = new ArrayList<List<Customer>>();
 		for(Customer c:prob.customers){
 			ArrayList<Customer> route = new ArrayList<Customer>();
 			route.add(c);
 			soln.add(route);
 		}
-	}
-	
-	
-	ArrayList<Customer> recRoute = new ArrayList<Customer>();
-	ArrayList<Double> ignoredRoutes = new ArrayList<Double>();
-	ArrayList<Customer> visitedCustomers = new ArrayList<Customer>();
-	int capacity = 0;
-	int recursion = 0;
-	int gIndex = 0;
+	}*/
 
 	public void clarkWrightSolution() {
-		soln = new ArrayList<List<Customer>>();
-		HashMap<HashMap<Customer, Customer>, Double> pairs = prob.makePairs();
-
-//		for (Double d : prob.sortedDistances) {
-//			System.out.println(d);
-//			System.out.println(getKeyByValue(prob.pairsMap, d));
-//		}
-		
-		// get the customer from where we should begin the route
-		double firstDistance = prob.sortedDistances.get(0);
-		Customer firstCustomer = (Customer) getKeyByValue(pairs, firstDistance).keySet().toArray()[0];
-		// update the capacity with the first customer's requirements and add the customer to the route
-		//recRoute.add(firstCustomer);
-		System.out.println(getKeyByValue(pairs, prob.sortedDistances.get(0)));
-		pathFinder(firstCustomer);
-		//System.out.println(prob.customers.get(0).x + " --- " + prob.depot.x);
-		for (HashMap<Customer, Customer> pair : prob.pairsMap.keySet()) {
-			System.out.println(pair.keySet().toArray()[0].toString() + " <---> " + pair.values().toArray()[0].toString());
-		}
-		
-		System.out.println();
-
-	}
-	
-	// recursive method that populates the solution
-	private void pathFinder(Customer curPos) {
-		// add the customer requirement to the capacity
-		capacity += curPos.c;
-		HashMap<Customer, Customer> curPair = getPairTwo(prob.pairsMap, curPos);
-		
-		Customer nextCustomer = new Customer(0,0,0);
-		
-		// if the pair is null, it means there are no other possible connections that can be made for the route solution
-		if (curPair == null || curPair.size() < 1) {
-			System.out.println("adding route to solution - null");
-			// add the current route to the solution
-			soln.add(recRoute);
-			// reset the global route list, capacity and the ignored distances list
-			recRoute = new ArrayList<Customer>();
-			capacity = 0;
-			ignoredRoutes.clear();
-			
-			// check to see if there are any customers left to be visited and start a new route
-			if (visitedCustomers.size() < prob.customers.size()) {
-				// make a recursive call with a customer that needs to be visited
-				// also make sure the he's part of the longest distance pair available
-				for (double d : prob.sortedDistances) {
-					Customer fromCustomer = (Customer)getKeyByValue(prob.pairsMap, d).keySet().toArray()[0];
-					Customer toCustomer = (Customer)getKeyByValue(prob.pairsMap, d).values().toArray()[0];
-					// check to see if the customers between which the van is traveling were visited or not
-					if (!isCustomerVisited(fromCustomer) && !isCustomerVisited(toCustomer)) {
-						pathFinder(fromCustomer);
-						return;
+		// go through all the nodes
+		for (SavingsNode node : prob.savingsNodes) {
+			// neither customers are in the routes
+			if (!isInRoutes(node.getFrom()) && !isInRoutes(node.getTo())) {
+				// make sure the requirements of the two customers don't go over the van's capacity
+				if ((node.getFrom().c + node.getTo().c) <= prob.depot.c) {
+					
+					// create a new route and add it to the solution
+					Route route = new Route();
+					route.add(node.getFrom());
+					route.add(node.getTo());
+					
+					if (!soln.contains(route)) {
+						soln.add(route);
+					}
+					
+				}
+			// else find a route that ends at 'from'	
+			} else if (!isInRoutes(node.getTo())) {
+				// go through all the routes in the solution
+				for (Route route : soln) {
+					// if the last customer is the 'from' part of the node
+					if (route.getLastCustomer() == node.getFrom()) {
+						// make sure to check the new requirement
+						if (route.hasCapacity(node.getTo().c, prob.depot.c)) {
+							route.add(0, node.getTo());
+							break;
+						}
 					}
 				}
-			} else {
-				System.out.println("All customers were visited");
-				return;
+			// else find a route that ends at 'to'
+			} else if (!isInRoutes(node.getFrom())) {
+				for(Route route : soln) {
+					// if the last customer is the 'to' part of the node
+					if (route.getLastCustomer() == node.getTo()) {
+						// make sure to check the new requirement
+						if (route.hasCapacity(node.getFrom().c, prob.depot.c)) {
+							route.add(node.getFrom());
+							break;
+						}
+					}
+				}
 			}
-		} else {
-			// get the next customer and the new requirement
-			//System.out.println(curPair);
-			nextCustomer = (Customer) curPair.values().toArray()[0];
-		}
-		
-		if ((capacity + nextCustomer.c) > prob.depot.c) {
-			System.out.println("capacity is reached with the next customer");
-			// if the capacity will go over maximum with the new customer, add the distance in the ignored list
-			ignoredRoutes.add(curPos.distance(nextCustomer));
-			System.out.println(ignoredRoutes.size() + " / " + prob.sortedDistances.size());
-			// and make a recursive call to find other possibilities
-			pathFinder(curPos);
-			return;
-		} else {		
-			System.out.println("adding customer to the route. Capacity = " + capacity);
-			// add the customer to the route
-			recRoute.add(curPos);
-			// mark customer as visited
-			visitedCustomers.add(curPos);
-			// delete the distance from the sorted array list
-			prob.sortedDistances.remove(gIndex);
-			// clear the ignored routes list
-			ignoredRoutes.clear();
-			// recursive call with the next customer
-			pathFinder(nextCustomer);
-			return;
-		}
-	}
-	
-	private HashMap<Customer, Customer> getPair(HashMap<HashMap<Customer, Customer>, Double> map, Customer curPos) {
-		for (int i=0; i<prob.sortedDistances.size(); i++) {
-			// check if the route is ignored so we don't go into an infinite loop of recursive calls
-			if (!isRouteIgnored(prob.sortedDistances.get(i))) {
-				// go through the entry sets of the pairs map
-				for (Entry<HashMap<Customer, Customer>, Double> entry : map.entrySet()) {
-					// check if the distance and the customers match
-					if (Objects.equals(prob.sortedDistances.get(i), entry.getValue())) {
-						// check to see if the initial customer matches the hashmap's key
-						if (Objects.equals(entry.getKey().keySet().toArray()[0], curPos)) {
-							// check if the next customer was visited
-							if(!isCustomerVisited(entry.getKey().values().toArray()[0])) {
-								// save the distance index for future references
-								gIndex = i;
-								System.out.println(entry.getKey());
-								return entry.getKey();
+			
+			// check for route merging possibilities
+			Route merged = null;
+			for (Route routeX : soln) {
+				// if a route has been marked for merge, exit the loop
+				if (merged!=null) break;
+				
+				// if the last customer in the route coincides with the 'from' from the current node, then check to see if the 'to' node can be found in other routes
+				if (routeX.getLastCustomer() == node.getFrom()) {
+					for (Route routeY : soln) {
+						if (routeY.getFirstCustomer() == node.getTo()) {
+							if (routeX != routeY) {
+								if ((routeX.getCurrentCapacity() + routeY.getCurrentCapacity()) <= prob.depot.c) {
+									routeX.addAll(routeY);
+									merged = routeY;
+									break;
+								}
 							}
 						}
 					}
 				}
 			}
+			
+			if (merged != null) {
+				soln.remove(merged);
+			}
 		}
-		return null;
+		
 	}
 	
-	private HashMap<Customer, Customer> getPairTwo(HashMap<HashMap<Customer, Customer>, Double> map, Customer curPos) {
-		for (int i=0; i<prob.sortedDistances.size(); i++) {
-			if (!isRouteIgnored(prob.sortedDistances.get(i))) {
-				HashMap<Customer, Customer> customersPair = getKeyByValue(map, prob.sortedDistances.get(i));
-				if (customersPair.keySet().toArray()[0] == curPos) {
-
-					if (!isCustomerVisited(customersPair.values().toArray()[0])) {
-						//System.out.println("yoyo");
-						gIndex = i;
-						return customersPair;
-					}
+	private boolean isInRoutes(Customer customer) {
+		for (Route route : soln) {
+			for(Customer c : route.getList()) {
+				if (customer == c) {
+					return true;
 				}
 			}
-		}		
-		return null;
-	}
-	
-	// helper method that returns true if the parameter is found in the ignored list (that gets populated during the recursive calls)
-	private boolean isRouteIgnored(double distance) {
-		for (int i=0; i<ignoredRoutes.size(); i++) {
-			if (ignoredRoutes.get(i) == distance) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	// helper method to check if the customer was visited or not
-	private boolean isCustomerVisited(Object object) {
-		for (int i=0; i<visitedCustomers.size(); i++) {
-			if (Objects.equals(visitedCustomers.get(i), object)) {
-				return true;
-			}
 		}
 		
 		return false;
 	}
 	
-	private static <T, E> T getKeyByValue(Map<T, E> map, E value) {
-	    for (Entry<T, E> entry : map.entrySet()) {
-	        if (Objects.equals(value, entry.getValue())) {
-	            return entry.getKey();
-	        }
-	    }
-	    return null;
-	}
 	
 	//Students should implement another solution
 	
 	//Calculate the total journey
-	public double solnCost(){
+	/*public double solnCost(){
 		double cost = 0;
 		for(List<Customer>route:soln){
 			Customer prev = this.prob.depot;
@@ -314,12 +223,12 @@ public class VRSolution {
         spw.append(ssb);
     	//ppw.close();
     	spw.close();
-	}
+	}*/
 	public void writeOut(String filename) throws Exception{
 		PrintStream ps = new PrintStream(filename);
-		for(List<Customer> route:this.soln){
+		for(Route route:this.soln){
 			boolean firstOne = true;
-			for(Customer c:route){
+			for(Customer c:route.getList()){
 				if (!firstOne)
 					ps.print(",");
 				firstOne = false;

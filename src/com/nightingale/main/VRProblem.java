@@ -7,9 +7,10 @@ import java.io.*;
 public class VRProblem {
 	public String id;
 	public Customer depot;
+	private int length = 0;
 	ArrayList<Customer> customers;
-	HashMap<HashMap<Customer, Customer>, Double> pairsMap;
     ArrayList<Double> sortedDistances;
+    ArrayList<SavingsNode> savingsNodes;
 
 
 	public VRProblem(String filename) throws Exception{
@@ -23,8 +24,8 @@ public class VRProblem {
 				Integer.parseInt(dpt[1]),
 				Integer.parseInt(dpt[2]));
 		customers = new ArrayList<Customer>();
-		pairsMap = new HashMap<HashMap<Customer, Customer>, Double>();
         sortedDistances = new ArrayList<Double>();
+        savingsNodes = new ArrayList<SavingsNode>();
 		//Every customer is stored on a comma separated line
 		while ((s=br.readLine())!=null){
 			String wrd [] = s.split(",");
@@ -34,35 +35,79 @@ public class VRProblem {
 					Integer.parseInt(wrd[2])));
 		}
 		br.close();
+		
+		createSavings();
 	}
+	
 	public int size(){
 		return this.customers.size();				
 	}
+	
+	private void createSavings() {
+		for (int i=0; i<customers.size(); i++) {
+			for (int j=0; j<customers.size(); j++) {
+				if (i != j) {
+					double saving = (depot.distance(customers.get(i)) + depot.distance(customers.get(j)) - customers.get(i).distance(customers.get(j)));
+					savingsNodes.add(new SavingsNode(customers.get(i), customers.get(j), saving));
+				}
+			}
+		}
+		length = savingsNodes.size();
+		// Sort the savings
+		
+		sort(savingsNodes);
 
-	public HashMap<HashMap<Customer, Customer>, Double> makePairs() {
-        // make sure the map is empty before making the pairs
-        pairsMap.clear();
-
-        // calculate the cost between pairs of customers
-        for (int i=0; i<customers.size()-1; i++) {
-            for (int j=i+1; j<customers.size(); j++) {
-                HashMap<Customer, Customer> coordMap = new HashMap<Customer, Customer>();
-                coordMap.put(customers.get(i), customers.get(j));
-
-                Double distance = customers.get(i).distance(customers.get(j));
-
-                pairsMap.put(coordMap, distance);
+	}
+	
+	
+	public void sort(ArrayList<SavingsNode> inputArr) {
+        
+        if (inputArr == null || inputArr.size() == 0) {
+            return;
+        }
+        //savingsNodes = inputArr;
+        length = inputArr.size();
+        quickSort(0, length - 1);
+    }
+ 
+    private void quickSort(int lowerIndex, int higherIndex) {
+         
+        int i = lowerIndex;
+        int j = higherIndex;
+        // calculate pivot number, I am taking pivot as middle index number
+        SavingsNode pivot = savingsNodes.get(lowerIndex+(higherIndex-lowerIndex)/2);
+        // Divide into two arrays
+        while (i <= j) {
+            /**
+             * In each iteration, we will identify a number from left side which
+             * is greater then the pivot value, and also we will identify a number
+             * from right side which is less then the pivot value. Once the search
+             * is done, then we exchange both numbers.
+             */
+            while (savingsNodes.get(i).getSavings() > pivot.getSavings()) {
+                i++;
+            }
+            while (savingsNodes.get(j).getSavings() < pivot.getSavings()) {
+                j--;
+            }
+            if (i <= j) {
+                exchangeNumbers(i, j);
+                //move index to next position on both sides
+                i++;
+                j--;
             }
         }
-
-        // update the distances array
-        sortedDistances = new ArrayList<Double>(pairsMap.values());
-        System.out.println(sortedDistances.size());
-        // sort the distances in descending order
-        Comparator<Double> comparator = Collections.reverseOrder();
-        Collections.sort(sortedDistances, comparator);
-
-        return pairsMap;
-	}
+        // call quickSort() method recursively
+        if (lowerIndex < j)
+            quickSort(lowerIndex, j);
+        if (i < higherIndex)
+            quickSort(i, higherIndex);
+    }
+ 
+    private void exchangeNumbers(int i, int j) {
+        SavingsNode temp = savingsNodes.get(i);
+        savingsNodes.set(i, savingsNodes.get(j));
+        savingsNodes.set(j, temp);
+    }
 
 }
