@@ -1,9 +1,8 @@
 package com.nightingale.main;
 
-import java.awt.geom.Point2D;
-import java.security.KeyPair;
-import java.util.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
 public class VRProblem {
 	public String id;
 	public Customer depot;
@@ -47,14 +46,15 @@ public class VRProblem {
 		for (int i=0; i<customers.size(); i++) {
 			for (int j=0; j<customers.size(); j++) {
 				if (i != j) {
+					// calculate the pair saving and add it to the node list
 					double saving = (depot.distance(customers.get(i)) + depot.distance(customers.get(j)) - customers.get(i).distance(customers.get(j)));
 					savingsNodes.add(new SavingsNode(customers.get(i), customers.get(j), saving));
 				}
 			}
 		}
 		length = savingsNodes.size();
-		// Sort the savings
 		
+		// Sort the savings using quicksort
 		sort(savingsNodes);
 
 	}

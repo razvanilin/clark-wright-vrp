@@ -6,3 +6,5 @@ Verify.jar
 bin/
 data/
 one_route.*
+report.csv
+solution.csv

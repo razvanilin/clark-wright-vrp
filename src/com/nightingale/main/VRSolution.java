@@ -1,5 +1,6 @@
 package com.nightingale.main;
 
+import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -110,11 +111,11 @@ public class VRSolution {
 	//Students should implement another solution
 	
 	//Calculate the total journey
-	/*public double solnCost(){
+	public double solnCost(){
 		double cost = 0;
-		for(List<Customer>route:soln){
+		for(Route route:soln){
 			Customer prev = this.prob.depot;
-			for (Customer c:route){
+			for (Customer c:route.getList()){
 				cost += prev.distance(c);
 				prev = c;
 			}
@@ -123,6 +124,7 @@ public class VRSolution {
 		}
 		return cost;
 	}
+	/*
 	public Boolean verify(){
 		//Check that no route exceeds capacity
 		Boolean okSoFar = true;
@@ -179,7 +181,7 @@ public class VRSolution {
 		}
 		br.close();
 	}
-	
+	*/
 	public void writeSVG(String probFilename,String solnFilename) throws Exception{
 		String[] colors = "chocolate cornflowerblue crimson cyan darkblue darkcyan darkgoldenrod".split(" ");
 		int colIndex = 0;
@@ -192,9 +194,9 @@ public class VRSolution {
         StringBuffer ssb = new StringBuffer();
         psb.append(hdr);
         ssb.append(hdr);
-        for(List<Customer> route:this.soln){
+        for(Route route:this.soln){
         	ssb.append(String.format("<path d='M%s %s ",this.prob.depot.x,this.prob.depot.y));
-        	for(Customer c:route)
+        	for(Customer c:route.getList())
         		ssb.append(String.format("L%s %s",c.x,c.y));
         	ssb.append(String.format("z' stroke='%s' fill='none' stroke-width='2'/>\n",
         			colors[colIndex++ % colors.length]));
@@ -223,7 +225,7 @@ public class VRSolution {
         spw.append(ssb);
     	//ppw.close();
     	spw.close();
-	}*/
+	}
 	public void writeOut(String filename) throws Exception{
 		PrintStream ps = new PrintStream(filename);
 		for(Route route:this.soln){
