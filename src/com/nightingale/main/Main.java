@@ -5,12 +5,12 @@ import java.util.HashMap;
 
 public class Main {
 	
-	static HashMap<String, Double> runTimes;
+	static HashMap<String, Double[]> runTimes;
 
     public static void main(String[] args) throws Exception {
 
         // create an array to hold the run times
-        runTimes = new HashMap<String, Double>();
+        runTimes = new HashMap<String, Double[]>();
         
         for (int i=0; i<Integer.parseInt(args[2]); i++) {
 	        // Load Problem
@@ -20,13 +20,18 @@ public class Main {
 	        VRSolution solution = new VRSolution(problem);
 	        
 	        double startTime = System.currentTimeMillis();
+	        double startTimeNano = System.nanoTime();
+	        
 	        // Use the existing problem solver to build a solution
 	        solution.clarkWrightSolution();
 	
 	        double endTime = System.currentTimeMillis();
+	        double endTimeNano = System.nanoTime();
 	        System.out.println("The time taken was " + (endTime - startTime));
 	        
-	        runTimes.put("Run "+ i, (endTime - startTime));
+	        Double[] values = {(endTime - startTime), (endTimeNano - startTimeNano)/1000, solution.solnCost()};
+	        
+	        runTimes.put("Run "+ i, values);
 	
 	        // Print out the cost of the solution
 	        System.out.println("Cost = " + solution.solnCost());
@@ -46,11 +51,11 @@ public class Main {
     
     public static void writeOut(String filename) throws Exception{
 		PrintStream ps = new PrintStream(filename);
-		ps.printf("%s,%s", "Run Number", "Time(ms)");
+		ps.printf("%s,%s,%s,%s", "Run Number", "Time(ms)","Time(microseconds)","Cost");
 		ps.print(",");
 		ps.println();
 		for(String run : runTimes.keySet()){
-			ps.printf("%s,%f",run,runTimes.get(run));
+			ps.printf("%s,%.2f,%.2f,%.5f",run,Double.valueOf(runTimes.get(run)[0]),Double.valueOf(runTimes.get(run)[1]),Double.valueOf(runTimes.get(run)[2]));
 			ps.print(",");
 			ps.println();
 		}

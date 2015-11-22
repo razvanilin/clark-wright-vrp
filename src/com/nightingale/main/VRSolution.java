@@ -11,16 +11,6 @@ public class VRSolution {
 		this.prob = problem;
 	}
 
-	//The dumb solver adds one route per customer
-	/*public void oneRoutePerCustomerSolution(){
-		this.soln = new ArrayList<List<Customer>>();
-		for(Customer c:prob.customers){
-			ArrayList<Customer> route = new ArrayList<Customer>();
-			route.add(c);
-			soln.add(route);
-		}
-	}*/
-
 	public void clarkWrightSolution() {
 		// go through all the nodes
 		for (SavingsNode node : prob.savingsNodes) {
@@ -106,10 +96,7 @@ public class VRSolution {
 		
 		return false;
 	}
-	
-	
-	//Students should implement another solution
-	
+		
 	//Calculate the total journey
 	public double solnCost(){
 		double cost = 0;
@@ -124,64 +111,7 @@ public class VRSolution {
 		}
 		return cost;
 	}
-	/*
-	public Boolean verify(){
-		//Check that no route exceeds capacity
-		Boolean okSoFar = true;
-		for(List<Customer> route : soln){
-			//Start the spare capacity at
-			int total = 0;
-			for(Customer c:route)
-				total += c.c;
-			if (total>prob.depot.c){
-				System.out.printf("********FAIL Route starting %s is over capacity %d\n",
-						route.get(0),
-						total
-						);
-				okSoFar = false;
-			}
-		}
-		//Check that we keep the customer satisfied
-		//Check that every customer is visited and the correct amount is picked up
-		Map<String,Integer> reqd = new HashMap<String,Integer>();
-		for(Customer c:this.prob.customers){
-			String address = String.format("%fx%f", c.x,c.y);
-			reqd.put(address, c.c);
-		}
-		for(List<Customer> route:this.soln){
-			for(Customer c:route){
-				String address = String.format("%fx%f", c.x,c.y);
-				if (reqd.containsKey(address))
-					reqd.put(address, reqd.get(address)-c.c);
-				else
-					System.out.printf("********FAIL no customer at %s\n",address);
-			}
-		}
-		for(String address:reqd.keySet())
-			if (reqd.get(address)!=0){
-				System.out.printf("********FAIL Customer at %s has %d left over\n",address,reqd.get(address));
-				okSoFar = false;
-			}
-		return okSoFar;
-	}
 	
-	public void readIn(String filename) throws Exception{
-		BufferedReader br = new BufferedReader(new FileReader(filename));
-		String s;
-		this.soln = new ArrayList<List<Customer>>();
-		while((s=br.readLine())!=null){
-			ArrayList<Customer> route = new ArrayList<Customer>();
-			String [] xycTriple = s.split(",");
-			for(int i=0;i<xycTriple.length;i+=3)
-				route.add(new Customer(
-						(int)Double.parseDouble(xycTriple[i]),
-						(int)Double.parseDouble(xycTriple[i+1]),
-						(int)Double.parseDouble(xycTriple[i+2])));
-			soln.add(route);
-		}
-		br.close();
-	}
-	*/
 	public void writeSVG(String probFilename,String solnFilename) throws Exception{
 		String[] colors = "chocolate cornflowerblue crimson cyan darkblue darkcyan darkgoldenrod".split(" ");
 		int colIndex = 0;

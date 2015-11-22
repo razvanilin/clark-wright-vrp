@@ -7,3 +7,7 @@ data/
 one_route.*
 report.csv
 solution.csv*
+/bin/
+report_*
+src/com/nightingale/main/.metadata
+src/com/nightingale/main/RemoteSystemsTempFiles/
